@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"slices"
 
@@ -231,6 +232,7 @@ func getFromEnv(deps []string) *DomedikConfig {
 
 func Resolve(deps []string) (*DomedikConfig, error) {
 	env := os.Getenv("DOMEDIK_ENV")
+	fmt.Print(env)
 	if env == "prod" {
 		return getFromProvider(deps)
 	} else {
