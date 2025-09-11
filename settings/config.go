@@ -188,35 +188,35 @@ func getFromEnv(deps []string) *DomedikConfig {
 	cacheconf := &CacheConfig{}
 	if slices.Contains(deps, "cache") {
 		cacheconf.Driver = "redis"
-		cacheconf.Host = os.Getenv("DB_HOST")
-		cacheconf.Port = os.Getenv("DB_PORT")
-		cacheconf.User = os.Getenv("DB_USER")
-		cacheconf.Password = os.Getenv("DB_PASSWORD")
+		cacheconf.Host = os.Getenv("CACHE_HOST")
+		cacheconf.Port = os.Getenv("CACHE_PORT")
+		cacheconf.User = os.Getenv("CACHE_USER")
+		cacheconf.Password = os.Getenv("CACHE_PASSWORD")
 	}
 
 	oauthconf := &OAuthConfig{}
 	if slices.Contains(deps, "oauth") {
-		oauthconf.App = os.Getenv("COGNITO_APP_ID")
-		oauthconf.Flow = os.Getenv("COGNITO_AUTH_FLOW")
-		oauthconf.Issuer = os.Getenv("COGNITO_ISSUER")
-		oauthconf.Secret = os.Getenv("COGNITO_SECRET_ID")
-		oauthconf.UserPool = os.Getenv("COGNITO_USER_POOL")
+		oauthconf.App = os.Getenv("OAUTH_APP_ID")
+		oauthconf.Flow = os.Getenv("OAUTH_AUTH_FLOW")
+		oauthconf.Issuer = os.Getenv("OAUTH_ISSUER")
+		oauthconf.Secret = os.Getenv("OAUTH_SECRET_ID")
+		oauthconf.UserPool = os.Getenv("OAUTH_USER_POOL")
 	}
 
 	encconf := &EncryptionConfig{}
 	if slices.Contains(deps, "encryption") {
-		encconf.Key = os.Getenv("KMS_KEY")
+		encconf.Key = os.Getenv("ENCRYPTION_KEY_ID")
 	}
 
 	eventsconf := &EventsConfig{}
 	if slices.Contains(deps, "events") {
-		eventsconf.QueueURL = os.Getenv("SQS_URL")
+		eventsconf.QueueURL = os.Getenv("QUEUE_URL")
 	}
 
 	vectorconf := &VectorConfig{}
 	if slices.Contains(deps, "events") {
-		vectorconf.Host = os.Getenv("QDRANT_HOST")
-		vectorconf.Port = os.Getenv("QDRANT_PORT")
+		vectorconf.Host = os.Getenv("VECTORS_HOST")
+		vectorconf.Port = os.Getenv("VECTORS_PORT")
 	}
 
 	return &DomedikConfig{
