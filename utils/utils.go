@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"net/url"
 	"strconv"
 )
 
@@ -16,7 +17,17 @@ func GetSecretHash(username, secret string) string {
 	return secretHash
 }
 
-func LimitAndOffset(p, size string) (uint, uint) {
+func LimitAndOffset(query url.Values) (uint, uint) {
+	queryPage := query["page"]
+	var p string
+	if len(queryPage) > 0 {
+		p = queryPage[0]
+	}
+	querySize := query["size"]
+	var size string
+	if len(querySize) > 0 {
+		size = querySize[0]
+	}
 	page, err := strconv.Atoi(p)
 	if err != nil || page < 1 {
 		page = 1

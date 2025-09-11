@@ -2,6 +2,7 @@ package normalize
 
 import (
 	"errors"
+	"net/url"
 	"strings"
 	"time"
 
@@ -21,7 +22,12 @@ func String(s *string) *string {
 	return &result
 }
 
-func APIAction(action string) (string, error) {
+func APIAction(query url.Values) (string, error) {
+	queryAction := query["action"]
+	var action string
+	if len(queryAction) > 0 {
+		action = queryAction[0]
+	}
 	if action == "" {
 		return "", errors.New("no action")
 	}
