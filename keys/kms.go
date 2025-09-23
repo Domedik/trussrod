@@ -44,10 +44,10 @@ func (k *KMS) CreateDEK(ctx context.Context) ([]byte, []byte, error) {
 	return out.Plaintext, out.CiphertextBlob, nil
 }
 
-func (k *KMS) Sign(ctx context.Context, cmkARN, message string) ([]byte, error) {
-	hash := encryption.GetSHA256(message)
+func (k *KMS) Sign(ctx context.Context, params *SignInput) ([]byte, error) {
+	hash := encryption.GetSHA256(params.Message)
 	input := &kms.SignInput{
-		KeyId:            aws.String(cmkARN),
+		KeyId:            aws.String(params.ARN),
 		Message:          hash,
 		MessageType:      types.MessageTypeDigest,
 		SigningAlgorithm: types.SigningAlgorithmSpecRsassaPssSha256,
@@ -63,6 +63,24 @@ func (k *KMS) Sign(ctx context.Context, cmkARN, message string) ([]byte, error) 
 	}
 
 	return result.Signature, nil
+}
+
+func (k *KMS) Verify(ctx context.Context, params *VerifyInput) (bool, error) {
+	hash := encryption.GetSHA256(params.Message)
+	input := &kms.VerifyInput{
+		KeyId:            aws.String(params.ARN),
+		Message:          hash,
+		Signature:        params.Signature,
+		MessageType:      types.MessageTypeDigest,
+		SigningAlgorithm: types.SigningAlgorithmSpecRsassaPssSha256,
+	}
+
+	result, err := k.client.Verify(ctx, input)
+	if err != nil {
+		return false, err
+	}
+
+	return result.SignatureValid, nil
 }
 
 func NewKMSClient(key string) (*KMS, error) {

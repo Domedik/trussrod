@@ -4,8 +4,20 @@ import (
 	"context"
 )
 
+type SignInput struct {
+	ARN     string
+	Message string
+}
+
+type VerifyInput struct {
+	ARN       string
+	Message   string
+	Signature []byte
+}
+
 type Manager interface {
 	Decrypt(ctx context.Context, target []byte) ([]byte, error)
 	CreateDEK(ctx context.Context) ([]byte, []byte, error)
-	Sign(ctx context.Context, arn, message string) ([]byte, error)
+	Sign(context.Context, *SignInput) ([]byte, error)
+	Verify(context.Context, *VerifyInput) (bool, error)
 }
