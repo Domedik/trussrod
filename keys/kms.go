@@ -13,7 +13,7 @@ import (
 
 type KMS struct {
 	client *kms.Client
-	keyId  string
+	keyARN string
 }
 
 func (k *KMS) Decrypt(ctx context.Context, target []byte) ([]byte, error) {
@@ -34,7 +34,7 @@ func (k *KMS) Decrypt(ctx context.Context, target []byte) ([]byte, error) {
 
 func (k *KMS) CreateDEK(ctx context.Context) ([]byte, []byte, error) {
 	input := &kms.GenerateDataKeyInput{
-		KeyId:   aws.String(k.keyId),
+		KeyId:   aws.String(k.keyARN),
 		KeySpec: "AES_256",
 	}
 	out, err := k.client.GenerateDataKey(ctx, input)
@@ -44,10 +44,19 @@ func (k *KMS) CreateDEK(ctx context.Context) ([]byte, []byte, error) {
 	return out.Plaintext, out.CiphertextBlob, nil
 }
 
-func (k *KMS) Sign(ctx context.Context, params *SignInput) ([]byte, error) {
-	hash := encryption.GetSHA256(params.Message)
-	input := &kms.SignInput{
-		KeyId:            aws.String(params.ARN),
+type KMSSigner struct {
+	key    string
+	client *kms.Client
+}
+
+func (k *KMS) CreateSigner(key string) Signer {
+	return &KMSSigner{key: key, client: k.client}
+}
+
+func (k *KMSSigner) Sign(ctx context.Context, input []byte) ([]byte, error) {
+	hash := encryption.GetSHA256(input)
+	result, err := k.client.Sign(ctx, &kms.SignInput{
+		KeyId:            aws.String(k.key),
 		Message:          hash,
 		MessageType:      types.MessageTypeDigest,
 		SigningAlgorithm: types.SigningAlgorithmSpecRsassaPssSha256,
@@ -55,9 +64,7 @@ func (k *KMS) Sign(ctx context.Context, params *SignInput) ([]byte, error) {
 		//     "doctor_id": "id",
 		//     "note_id": "note-id",
 		// },
-	}
-
-	result, err := k.client.Sign(ctx, input)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -65,12 +72,12 @@ func (k *KMS) Sign(ctx context.Context, params *SignInput) ([]byte, error) {
 	return result.Signature, nil
 }
 
-func (k *KMS) Verify(ctx context.Context, params *VerifyInput) (bool, error) {
-	hash := encryption.GetSHA256(params.Message)
+func (k *KMSSigner) Verify(ctx context.Context, message, signature []byte) (bool, error) {
+	hash := encryption.GetSHA256(message)
 	input := &kms.VerifyInput{
-		KeyId:            aws.String(params.ARN),
+		KeyId:            aws.String(k.key),
 		Message:          hash,
-		Signature:        params.Signature,
+		Signature:        signature,
 		MessageType:      types.MessageTypeDigest,
 		SigningAlgorithm: types.SigningAlgorithmSpecRsassaPssSha256,
 	}
@@ -88,5 +95,5 @@ func NewKMSClient(key string) (*KMS, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &KMS{client: kms.NewFromConfig(conf), keyId: key}, nil
+	return &KMS{client: kms.NewFromConfig(conf), keyARN: key}, nil
 }
