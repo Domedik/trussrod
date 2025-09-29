@@ -1,8 +1,5 @@
-/*
-Package encryption holds all logic and functions related
-to hancle encryption, mostly used at the keys package.
-*/
-
+// Package encryption holds all logic and functions related
+// to handle encryption, mostly used at the keys package.
 package encryption
 
 import (
