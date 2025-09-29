@@ -60,10 +60,6 @@ func (k *KMSSigner) Sign(ctx context.Context, input []byte) ([]byte, error) {
 		Message:          hash,
 		MessageType:      types.MessageTypeDigest,
 		SigningAlgorithm: types.SigningAlgorithmSpecRsassaPssSha256,
-		// EncryptionContext: map[string]string{
-		//     "doctor_id": "id",
-		//     "note_id": "note-id",
-		// },
 	})
 	if err != nil {
 		return nil, err
