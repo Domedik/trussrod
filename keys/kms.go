@@ -2,7 +2,11 @@ package keys
 
 import (
 	"context"
+	"crypto"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/Domedik/trussrod/utils/encryption"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -49,15 +53,22 @@ type KMSSigner struct {
 	client *kms.Client
 }
 
+type SignOutput struct {
+	KeyId     string
+	Digest    []byte
+	Signature []byte
+	Algorithm string
+}
+
 func (k *KMS) CreateSigner(key string) Signer {
 	return &KMSSigner{key: key, client: k.client}
 }
 
-func (k *KMSSigner) Sign(ctx context.Context, input []byte) ([]byte, error) {
-	hash := encryption.GetSHA256(input)
+func (k *KMSSigner) Sign(ctx context.Context, input []byte) (*SignOutput, error) {
+	digest := encryption.GetSHA256(input)
 	result, err := k.client.Sign(ctx, &kms.SignInput{
 		KeyId:            aws.String(k.key),
-		Message:          hash,
+		Message:          digest,
 		MessageType:      types.MessageTypeDigest,
 		SigningAlgorithm: types.SigningAlgorithmSpecRsassaPssSha256,
 	})
@@ -65,25 +76,41 @@ func (k *KMSSigner) Sign(ctx context.Context, input []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	return result.Signature, nil
+	return &SignOutput{
+		KeyId:     *result.KeyId,
+		Digest:    digest,
+		Signature: result.Signature,
+		Algorithm: string(types.SigningAlgorithmSpecRsassaPssSha256),
+	}, nil
 }
 
 func (k *KMSSigner) Verify(ctx context.Context, message, signature []byte) (bool, error) {
-	hash := encryption.GetSHA256(message)
-	input := &kms.VerifyInput{
-		KeyId:            aws.String(k.key),
-		Message:          hash,
-		Signature:        signature,
-		MessageType:      types.MessageTypeDigest,
-		SigningAlgorithm: types.SigningAlgorithmSpecRsassaPssSha256,
-	}
-
-	result, err := k.client.Verify(ctx, input)
+	pkOut, err := k.client.GetPublicKey(ctx, &kms.GetPublicKeyInput{
+		KeyId: aws.String(k.key),
+	})
 	if err != nil {
 		return false, err
 	}
 
-	return result.SignatureValid, nil
+	pub, err := x509.ParsePKIXPublicKey(pkOut.PublicKey)
+	if err != nil {
+		return false, err
+	}
+	rsaPub, ok := pub.(*rsa.PublicKey)
+	if !ok {
+		return false, fmt.Errorf("public key is not RSA")
+	}
+
+	if err := rsa.VerifyPSS(
+		rsaPub,
+		crypto.SHA256,
+		message,
+		signature,
+		&rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthEqualsHash, Hash: crypto.SHA256}); err != nil {
+		return false, fmt.Errorf("signature verification failed: %w", err)
+	}
+
+	return true, nil
 }
 
 func NewKMSClient(key string) (*KMS, error) {

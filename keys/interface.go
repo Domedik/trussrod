@@ -11,6 +11,6 @@ type Manager interface {
 }
 
 type Signer interface {
-	Sign(ctx context.Context, input []byte) ([]byte, error)
+	Sign(ctx context.Context, input []byte) (*SignOutput, error)
 	Verify(ctx context.Context, message, signature []byte) (bool, error)
 }

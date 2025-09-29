@@ -12,14 +12,15 @@ type (
 )
 
 type Metadata struct {
-	AppointmentId string    `bson:"appointment_id"`
-	CreatedAt     time.Time `bson:"created_at"`
-	DoctorId      string    `bson:"doctor_id"`
-	DocumentType  string    `bson:"document_type"`
-	NoteId        string    `bson:"note_id"`
-	PatientId     string    `bson:"patient_id"`
-	SignedAt      time.Time `bson:"signed_at"`
-	SignedWith    string    `bson:"signed_with"`
+	AppointmentId    string    `bson:"appointment_id"`
+	CreatedAt        time.Time `bson:"created_at"`
+	DoctorId         string    `bson:"doctor_id"`
+	DocumentType     string    `bson:"document_type"`
+	NoteId           string    `bson:"note_id"`
+	PatientId        string    `bson:"patient_id"`
+	SignedAt         time.Time `bson:"signed_at"`
+	SignedWith       string    `bson:"signed_with"`
+	CanonicalVersion string    `bson:"canonical_version"`
 }
 
 type Attachment struct {
@@ -34,25 +35,27 @@ type CanonicalNote struct {
 }
 
 type NoteInput struct {
-	DoctorId     string
-	DocumentType string
-	NoteId       string
-	PatientId    string
-	Content      string
-	SignedWith   string
-	Attachments  []Attachment
+	DoctorId         string
+	DocumentType     string
+	NoteId           string
+	PatientId        string
+	Content          string
+	SignedWith       string
+	Attachments      []Attachment
+	CanonicalVersion string
 }
 
 func NewCanonicalNote(i *NoteInput) *CanonicalNote {
 	n := &CanonicalNote{
 		Metadata: Metadata{
-			CreatedAt:    time.Now(),
-			SignedAt:     time.Now(),
-			DoctorId:     i.DoctorId,
-			DocumentType: i.DocumentType,
-			NoteId:       i.NoteId,
-			PatientId:    i.PatientId,
-			SignedWith:   i.SignedWith,
+			CreatedAt:        time.Now(),
+			SignedAt:         time.Now(),
+			DoctorId:         i.DoctorId,
+			DocumentType:     i.DocumentType,
+			NoteId:           i.NoteId,
+			PatientId:        i.PatientId,
+			SignedWith:       i.SignedWith,
+			CanonicalVersion: i.CanonicalVersion,
 		},
 		Attachments: []Attachment{},
 	}
