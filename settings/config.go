@@ -52,6 +52,11 @@ type EncryptionConfig struct {
 	Key string `json:"ENCRYPTION_KEY_ID"`
 }
 
+type IdentityConfig struct {
+	UserPool     string `json:"USER_POOL"`
+	IdentityPool string `json:"IDENTITY_POOL"`
+}
+
 type VectorConfig struct {
 	Host string `json:"VECTORS_HOST"`
 	Port string `json:"VECTORS_PORT"`
@@ -65,6 +70,7 @@ type DomedikConfig struct {
 	OAuth    *OAuthConfig
 	Events   *EventsConfig
 	Vectors  *VectorConfig
+	Identity *IdentityConfig
 	BindPort string
 	ApiKey   string
 }
@@ -154,6 +160,13 @@ func getFromProvider(deps []string) (*DomedikConfig, error) {
 		}
 	}
 
+	idconf := IdentityConfig{}
+	if slices.Contains(deps, "identity") {
+		if err := json.Unmarshal([]byte(secret), &idconf); err != nil {
+			return nil, errors.New("failed to unmarshal id config")
+		}
+	}
+
 	return &DomedikConfig{
 		BindPort: port,
 		ApiKey:   apikey,
@@ -164,6 +177,7 @@ func getFromProvider(deps []string) (*DomedikConfig, error) {
 		Events:   &eventsconf,
 		Vectors:  &vectorconf,
 		Crypto:   &encconf,
+		Identity: &idconf,
 	}, nil
 }
 
@@ -219,6 +233,12 @@ func getFromEnv(deps []string) *DomedikConfig {
 		vectorconf.Port = os.Getenv("VECTORS_PORT")
 	}
 
+	idconf := IdentityConfig{}
+	if slices.Contains(deps, "identity") {
+		idconf.UserPool = os.Getenv("USER_POOL")
+		idconf.IdentityPool = os.Getenv("IDENTITY_POOL")
+	}
+
 	return &DomedikConfig{
 		ApiKey:   apikey,
 		BindPort: port,
@@ -228,6 +248,7 @@ func getFromEnv(deps []string) *DomedikConfig {
 		Crypto:   encconf,
 		Events:   eventsconf,
 		Vectors:  vectorconf,
+		Identity: &idconf,
 		Cloud:    &CloudConfig{Region: region},
 	}
 }
