@@ -19,16 +19,13 @@ type File struct {
 	Name     string
 }
 
-// Key returns storage key of the current file, using root path
-// as parameter along a uuid generated to keep sensitive original
-// filenames encrypted and secure.
-func (f *File) Key(path string) string {
+func (f *File) Stem() string {
 	var ext string
 	parts := strings.Split(f.Name, ".")
 	if len(parts) > 1 {
 		ext = parts[1]
 	}
-	return fmt.Sprintf("%s/%s.%s", path, f.ID, ext)
+	return fmt.Sprintf("%s.%s", f.ID, ext)
 }
 
 // Size returns file total size in bytes.
@@ -58,7 +55,8 @@ func (f *File) SaveTo(ctx context.Context, s Storage, path string) error {
 	}
 
 	contentReader := bytes.NewReader(f.Content)
-	bucket, err := s.Upload(uploadCtx, f.Key(path), contentReader, nil)
+	key := fmt.Sprintf("%s/%s", path, f.Stem())
+	bucket, err := s.Upload(uploadCtx, key, contentReader, nil)
 	if err != nil {
 		return err
 	}

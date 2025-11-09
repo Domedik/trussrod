@@ -7,23 +7,30 @@ import (
 	"github.com/Domedik/trussrod/errors"
 )
 
-func WriteError(w http.ResponseWriter, err error) {
+func WithError(w http.ResponseWriter, err error) {
 	wrapped := errors.Wrap(err)
 	http.Error(w, wrapped.Error(), wrapped.HTTPStatus)
 }
 
-func WriteHeader(w http.ResponseWriter, key, value string) {
+func WithHeader(w http.ResponseWriter, key, value string) {
 	w.Header().Set(key, value)
 }
 
-func WriteStatus(w http.ResponseWriter, status int) {
+func WithStatus(w http.ResponseWriter, status int) {
 	w.WriteHeader(status)
 }
 
-func JSON(w http.ResponseWriter, status int, body any) {
-	WriteHeader(w, "Content-Type", "application/json")
+func WithJSON(w http.ResponseWriter, status int, body any) {
+	WithHeader(w, "Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(body)
+}
+
+func WithMessage(w http.ResponseWriter, status int, message string) {
+	m := map[string]string{
+		"message": message,
+	}
+	WithJSON(w, status, m)
 }
 
 type Paginated[T any] struct {

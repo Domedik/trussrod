@@ -2,12 +2,11 @@ package request
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/Domedik/trussrod/errors"
-	"github.com/go-playground/validator/v10"
+	"github.com/Domedik/trussrod/validation"
 )
 
 func JSON[T any](r *http.Request) (T, error) {
@@ -25,25 +24,9 @@ func JSON[T any](r *http.Request) (T, error) {
 		return zero, err
 	}
 
-	if err := Validate(v); err != nil {
+	if err := validation.ValidatePayload(v); err != nil {
 		return zero, err
 	}
 
 	return v, nil
-}
-
-func Validate[T any](i T) error {
-	var validate = validator.New()
-	err := validate.Struct(i)
-	var v []string
-
-	if err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			msg := fmt.Sprintf("Field %s failed on the '%s' tag\n", err.Field(), err.Tag())
-			v = append(v, msg)
-		}
-		return errors.ValidationFailed(strings.Join(v, ","))
-	}
-
-	return nil
 }

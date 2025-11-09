@@ -26,6 +26,7 @@ type Metadata struct {
 type Attachment struct {
 	SHA256Hash string `bson:"sha256_hash"`
 	Filename   string `bson:"filename"`
+	Key        string `bson:"key"`
 }
 
 type CanonicalNote struct {

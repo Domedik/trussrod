@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Domedik/trussrod/identity"
+	"github.com/Domedik/trussrod/keys"
 )
 
 type key string
@@ -28,6 +29,7 @@ const (
 	DomedikPatient     key = "DOMEDIK_PATIENT"
 	DomedikDek         key = "DOMEDIK_DEK"
 	DomedikCredentials key = "DOMEDIK_CREDENTIALS"
+	DomedikSigner      key = "DOMEDIK_SIGNER"
 )
 
 const (
@@ -43,68 +45,81 @@ const (
 	Attachment QueryParam = "attachment"
 )
 
-func GetIdentity(ctx context.Context) (string, bool) {
-	id, ok := ctx.Value(DomedikIdentity).(string)
+func GetIdentity(r *http.Request) (string, bool) {
+	id, ok := r.Context().Value(DomedikIdentity).(string)
 	return id, ok
 }
 
-func GetUser(ctx context.Context) (*User, bool) {
-	user, ok := ctx.Value(DomedikUser).(*User)
+func GetUser(r *http.Request) (*User, bool) {
+	user, ok := r.Context().Value(DomedikUser).(*User)
 	return user, ok
 }
 
-func GetPatient(ctx context.Context) (string, bool) {
-	patient, ok := ctx.Value(DomedikPatient).(string)
+func GetPatient(r *http.Request) (string, bool) {
+	patient, ok := r.Context().Value(DomedikPatient).(string)
 	return patient, ok
 }
 
-func GetCredentials(ctx context.Context) (*identity.Credentials, bool) {
-	creds, ok := ctx.Value(DomedikCredentials).(*identity.Credentials)
+func GetCredentials(r *http.Request) (*identity.Credentials, bool) {
+	creds, ok := r.Context().Value(DomedikCredentials).(*identity.Credentials)
 	return creds, ok
 }
 
-func MustGetDek(ctx context.Context) []byte {
-	key, ok := GetDek(ctx)
+func GetSigner(r *http.Request) (keys.Signer, bool) {
+	s, ok := r.Context().Value(DomedikSigner).(keys.Signer)
+	return s, ok
+}
+
+func MustGetDek(r *http.Request) []byte {
+	key, ok := GetDek(r)
 	if !ok {
 		panic("could not retrieve dek from context")
 	}
 	return key
 }
 
-func MustGetIdentity(ctx context.Context) string {
-	token, ok := GetIdentity(ctx)
+func MustGetIdentity(r *http.Request) string {
+	token, ok := GetIdentity(r)
 	if !ok {
 		panic("could not identity token from context")
 	}
 	return token
 }
 
-func MustGetUser(ctx context.Context) *User {
-	user, ok := GetUser(ctx)
+func MustGetUser(r *http.Request) *User {
+	user, ok := GetUser(r)
 	if !ok {
 		panic("could not user from context")
 	}
 	return user
 }
 
-func MustGetPatient(ctx context.Context) string {
-	patient, ok := GetPatient(ctx)
+func MustGetPatient(r *http.Request) string {
+	patient, ok := GetPatient(r)
 	if !ok {
 		panic("could not patient token from context")
 	}
 	return patient
 }
 
-func MustGetCredentials(ctx context.Context) *identity.Credentials {
-	creds, ok := GetCredentials(ctx)
+func MustGetCredentials(r *http.Request) *identity.Credentials {
+	creds, ok := GetCredentials(r)
 	if !ok {
 		panic("could not get credentials from context")
 	}
 	return creds
 }
 
-func GetDek(ctx context.Context) ([]byte, bool) {
-	key, ok := ctx.Value(DomedikDek).([]byte)
+func MustGetSigner(r *http.Request) keys.Signer {
+	s, ok := GetSigner(r)
+	if !ok {
+		panic("could not get signer from context")
+	}
+	return s
+}
+
+func GetDek(r *http.Request) ([]byte, bool) {
+	key, ok := r.Context().Value(DomedikDek).([]byte)
 	return key, ok
 }
 
@@ -135,6 +150,12 @@ func WithDEK(r *http.Request, d []byte) *http.Request {
 func WithCredentials(r *http.Request, creds *identity.Credentials) *http.Request {
 	parent := r.Context()
 	ctx := context.WithValue(parent, DomedikCredentials, creds)
+	return r.WithContext(ctx)
+}
+
+func WithSigner(r *http.Request, s keys.Signer) *http.Request {
+	parent := r.Context()
+	ctx := context.WithValue(parent, DomedikSigner, s)
 	return r.WithContext(ctx)
 }
 

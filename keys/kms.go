@@ -5,7 +5,6 @@ import (
 	"crypto"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
 	"fmt"
 
 	"github.com/Domedik/trussrod/utils/encryption"
@@ -21,12 +20,8 @@ type KMS struct {
 }
 
 func (k *KMS) Decrypt(ctx context.Context, target []byte) ([]byte, error) {
-	blob, err := base64.StdEncoding.DecodeString(string(target))
-	if err != nil {
-		return nil, err
-	}
 	input := &kms.DecryptInput{
-		CiphertextBlob: blob,
+		CiphertextBlob: target,
 	}
 
 	decrypted, err := k.client.Decrypt(ctx, input)
