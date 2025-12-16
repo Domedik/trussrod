@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type DB struct {
+type Postgres struct {
 	Pool *pgxpool.Pool
 }
 
@@ -45,7 +45,7 @@ func getURL(c *settings.DatabaseConfig) string {
 	return u.String()
 }
 
-func New(c *settings.DatabaseConfig) (*DB, error) {
+func NewPostgres(c *settings.DatabaseConfig) (*Postgres, error) {
 	var err error
 	cfg, err := pgxpool.ParseConfig(getURL(c))
 	if err != nil {
@@ -56,16 +56,31 @@ func New(c *settings.DatabaseConfig) (*DB, error) {
 	cfg.MaxConnLifetime = 10 * time.Minute
 	cfg.MaxConnIdleTime = 20 * time.Minute
 	pool, err := pgxpool.NewWithConfig(context.Background(), cfg)
+	if err != nil {
+		return nil, err
+	}
 
-	return &DB{
+	return &Postgres{
 		Pool: pool,
-	}, err
+	}, nil
 }
 
-func (db *DB) Close() {
+func (db *Postgres) Query(ctx context.Context, sql string, args ...any) (Rows, error) {
+	return db.Pool.Query(ctx, sql, args...)
+}
+
+func (db *Postgres) QueryRow(ctx context.Context, sql string, args ...any) Row {
+	return db.Pool.QueryRow(ctx, sql, args...)
+}
+
+func (db *Postgres) Exec(ctx context.Context, sql string, args ...any) (Result, error) {
+	return db.Pool.Exec(ctx, sql, args...)
+}
+
+func (db *Postgres) Close() {
 	db.Pool.Close()
 }
 
-func (db *DB) Ping(ctx context.Context) error {
+func (db *Postgres) Ping(ctx context.Context) error {
 	return db.Pool.Ping(ctx)
 }
