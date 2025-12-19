@@ -16,6 +16,31 @@ type Postgres struct {
 	Pool *pgxpool.Pool
 }
 
+// pgxTxWrapper wraps pgx.Tx to implement the Tx interface.
+type pgxTxWrapper struct {
+	tx pgx.Tx
+}
+
+func (w *pgxTxWrapper) Commit(ctx context.Context) error {
+	return w.tx.Commit(ctx)
+}
+
+func (w *pgxTxWrapper) Rollback(ctx context.Context) error {
+	return w.tx.Rollback(ctx)
+}
+
+func (w *pgxTxWrapper) Query(ctx context.Context, sql string, args ...any) (Rows, error) {
+	return w.tx.Query(ctx, sql, args...)
+}
+
+func (w *pgxTxWrapper) QueryRow(ctx context.Context, sql string, args ...any) Row {
+	return w.tx.QueryRow(ctx, sql, args...)
+}
+
+func (w *pgxTxWrapper) Exec(ctx context.Context, sql string, args ...any) (Result, error) {
+	return w.tx.Exec(ctx, sql, args...)
+}
+
 func getURL(c *settings.DatabaseConfig) string {
 	var userInfo *url.Userinfo
 	if c.Password != "" {
@@ -100,5 +125,9 @@ func (db *Postgres) BeginTx(ctx context.Context, opts any) (Tx, error) {
 		return nil, fmt.Errorf("invalid transaction options")
 	}
 
-	return db.Pool.BeginTx(ctx, options)
+	tx, err := db.Pool.BeginTx(ctx, options)
+	if err != nil {
+		return nil, err
+	}
+	return &pgxTxWrapper{tx: tx}, nil
 }
