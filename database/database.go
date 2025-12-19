@@ -35,9 +35,8 @@ func getURL(c *settings.DatabaseConfig) string {
 	}
 
 	q := url.Values{}
-	if c.SSLMode != "" {
-		q.Set("sslmode", c.SSLMode)
-	}
+	q.Set("sslmode", c.SSLMode) // 'disable' is the default value
+
 	if c.SearchPath != "" {
 		q.Set("options", fmt.Sprintf("-c search_path=%s", c.SearchPath))
 	}

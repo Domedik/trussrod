@@ -20,7 +20,7 @@ type DatabaseConfig struct {
 	Host       string `json:"DB_HOST"`
 	Port       string `json:"DB_PORT"`
 	Name       string `json:"DB_NAME"`
-	SSLMode    string
+	SSLMode    string `json:"DB_SSLMODE"`
 	User       string `json:"DB_USER"`
 	Password   string `json:"DB_PASSWORD"`
 	SearchPath string `json:"DB_SEARCHPATH"`
@@ -244,7 +244,10 @@ func getFromEnv(deps []string) *DomedikConfig {
 		dbconf.Password = os.Getenv("DB_PASSWORD")
 		dbconf.SearchPath = os.Getenv("DB_SEARCHPATH")
 		dbconf.MaxConns = maxConns
-		dbconf.SSLMode = "disable"
+		dbconf.SSLMode = os.Getenv("DB_SSLMODE")
+		if dbconf.SSLMode == "" {
+			dbconf.SSLMode = "disable"
+		}
 	}
 
 	cacheconf := &CacheConfig{}
