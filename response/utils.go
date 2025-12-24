@@ -6,20 +6,12 @@ import (
 
 	"github.com/clineomx/trussrod/apperr"
 	"github.com/clineomx/trussrod/logging"
-	"github.com/clineomx/trussrod/request"
 )
 
 // WithError sends a structured JSON error response
 // It automatically includes the trace ID from the request context if available
-func WithError(w http.ResponseWriter, r *http.Request, err error) {
+func WithError(w http.ResponseWriter, err error) {
 	wrapped := apperr.Wrap(err)
-
-	// Try to get trace ID from request context
-	if r != nil {
-		if traceID, ok := request.GetTraceID(r); ok {
-			wrapped = wrapped.WithTraceID(traceID)
-		}
-	}
 
 	// Set content type
 	w.Header().Set("Content-Type", "application/json")
