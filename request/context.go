@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Domedik/trussrod/identity"
-	"github.com/Domedik/trussrod/keys"
-	"github.com/Domedik/trussrod/logging"
+	"github.com/clineomx/trussrod/identity"
+	"github.com/clineomx/trussrod/keys"
+	"github.com/clineomx/trussrod/logging"
 )
 
 type key string
@@ -25,14 +25,14 @@ type User struct {
 }
 
 const (
-	DomedikUser          key = "DOMEDIK_SESSION"
-	DomedikIdentity      key = "DOMEDIK_IDENTITY"
-	DomedikPatient       key = "DOMEDIK_PATIENT"
-	DomedikDek           key = "DOMEDIK_DEK"
-	DomedikCredentials   key = "DOMEDIK_CREDENTIALS"
-	DomedikSigner        key = "DOMEDIK_SIGNER"
-	DomedikTraceID       key = "DOMEDIK_TRACE_ID"
-	DomedikRequestLogger key = "DOMEDIK_REQUEST_LOGGER"
+	ClineoUser          key = "CLINEO_SESSION"
+	ClineoIdentity      key = "CLINEO_IDENTITY"
+	ClineoPatient       key = "CLINEO_PATIENT"
+	ClineoDek           key = "CLINEO_DEK"
+	ClineoCredentials   key = "CLINEO_CREDENTIALS"
+	ClineoSigner        key = "CLINEO_SIGNER"
+	ClineoTraceID       key = "CLINEO_TRACE_ID"
+	ClineoRequestLogger key = "CLINEO_REQUEST_LOGGER"
 )
 
 const (
@@ -51,37 +51,37 @@ const (
 )
 
 func GetIdentity(r *http.Request) (string, bool) {
-	id, ok := r.Context().Value(DomedikIdentity).(string)
+	id, ok := r.Context().Value(ClineoIdentity).(string)
 	return id, ok
 }
 
 func GetUser(r *http.Request) (*User, bool) {
-	user, ok := r.Context().Value(DomedikUser).(*User)
+	user, ok := r.Context().Value(ClineoUser).(*User)
 	return user, ok
 }
 
 func GetPatient(r *http.Request) (string, bool) {
-	patient, ok := r.Context().Value(DomedikPatient).(string)
+	patient, ok := r.Context().Value(ClineoPatient).(string)
 	return patient, ok
 }
 
 func GetCredentials(r *http.Request) (*identity.Credentials, bool) {
-	creds, ok := r.Context().Value(DomedikCredentials).(*identity.Credentials)
+	creds, ok := r.Context().Value(ClineoCredentials).(*identity.Credentials)
 	return creds, ok
 }
 
 func GetSigner(r *http.Request) (keys.Signer, bool) {
-	s, ok := r.Context().Value(DomedikSigner).(keys.Signer)
+	s, ok := r.Context().Value(ClineoSigner).(keys.Signer)
 	return s, ok
 }
 
 func GetTraceID(r *http.Request) (string, bool) {
-	id, ok := r.Context().Value(DomedikTraceID).(string)
+	id, ok := r.Context().Value(ClineoTraceID).(string)
 	return id, ok
 }
 
 func GetRequestLogger(r *http.Request) (*logging.Logger, bool) {
-	log, ok := r.Context().Value("DOMEDIK_REQUEST_LOGGER").(*logging.Logger)
+	log, ok := r.Context().Value("CLINEO_REQUEST_LOGGER").(*logging.Logger)
 	return log, ok
 }
 
@@ -150,49 +150,49 @@ func MustGetRequestLogger(r *http.Request) *logging.Logger {
 }
 
 func GetDek(r *http.Request) ([]byte, bool) {
-	key, ok := r.Context().Value(DomedikDek).([]byte)
+	key, ok := r.Context().Value(ClineoDek).([]byte)
 	return key, ok
 }
 
 func WithUser(r *http.Request, user *User) *http.Request {
 	parent := r.Context()
-	ctx := context.WithValue(parent, DomedikUser, user)
+	ctx := context.WithValue(parent, ClineoUser, user)
 	return r.WithContext(ctx)
 }
 
 func WithIdentity(r *http.Request, identity string) *http.Request {
 	parent := r.Context()
-	ctx := context.WithValue(parent, DomedikIdentity, identity)
+	ctx := context.WithValue(parent, ClineoIdentity, identity)
 	return r.WithContext(ctx)
 }
 
 func WithPatient(r *http.Request, patient string) *http.Request {
 	parent := r.Context()
-	ctx := context.WithValue(parent, DomedikPatient, patient)
+	ctx := context.WithValue(parent, ClineoPatient, patient)
 	return r.WithContext(ctx)
 }
 
 func WithDEK(r *http.Request, d []byte) *http.Request {
 	parent := r.Context()
-	ctx := context.WithValue(parent, DomedikDek, d)
+	ctx := context.WithValue(parent, ClineoDek, d)
 	return r.WithContext(ctx)
 }
 
 func WithCredentials(r *http.Request, creds *identity.Credentials) *http.Request {
 	parent := r.Context()
-	ctx := context.WithValue(parent, DomedikCredentials, creds)
+	ctx := context.WithValue(parent, ClineoCredentials, creds)
 	return r.WithContext(ctx)
 }
 
 func WithSigner(r *http.Request, s keys.Signer) *http.Request {
 	parent := r.Context()
-	ctx := context.WithValue(parent, DomedikSigner, s)
+	ctx := context.WithValue(parent, ClineoSigner, s)
 	return r.WithContext(ctx)
 }
 
 func WithTraceID(r *http.Request, rid string) *http.Request {
 	parent := r.Context()
-	ctx := context.WithValue(parent, DomedikTraceID, rid)
+	ctx := context.WithValue(parent, ClineoTraceID, rid)
 	return r.WithContext(ctx)
 }
 

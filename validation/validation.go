@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"strings"
 	"sync"
 	"time"
 
-	"github.com/Domedik/trussrod/errors"
+	"github.com/clineomx/trussrod/apperr"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -94,7 +93,7 @@ func ValidatePayload(obj any) error {
 
 	if val.Kind() == reflect.Ptr {
 		if val.IsNil() {
-			return errors.BadRequest("cannot validate nil pointer")
+			return apperr.BadRequest("cannot validate nil pointer")
 		}
 		val = val.Elem()
 	}
@@ -103,14 +102,49 @@ func ValidatePayload(obj any) error {
 	toValidate := val.Interface()
 
 	err := get().Struct(toValidate)
-	var v []string
 
 	if err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			msg := fmt.Sprintf("Field %s failed on the '%s' tag", err.Field(), err.Tag())
-			v = append(v, msg)
+		validationErrors := err.(validator.ValidationErrors)
+		fieldErrors := make(map[string]string)
+		var details []string
+
+		for _, ve := range validationErrors {
+			fieldName := ve.Field()
+			tag := ve.Tag()
+
+			// Create a more descriptive error message
+			var errorMsg string
+			switch tag {
+			case "required":
+				errorMsg = fmt.Sprintf("The field '%s' is required", fieldName)
+			case "email":
+				errorMsg = fmt.Sprintf("The field '%s' must be a valid email address", fieldName)
+			case "min":
+				errorMsg = fmt.Sprintf("The field '%s' must be at least %s characters long", fieldName, ve.Param())
+			case "max":
+				errorMsg = fmt.Sprintf("The field '%s' must be at most %s characters long", fieldName, ve.Param())
+			case "validdate":
+				errorMsg = fmt.Sprintf("The field '%s' must be a valid date in YYYY-MM-DD format", fieldName)
+			case "mindate":
+				errorMsg = fmt.Sprintf("The field '%s' must be on or after %s", fieldName, ve.Param())
+			case "phone":
+				errorMsg = fmt.Sprintf("The field '%s' must be a valid phone number", fieldName)
+			case "ssn":
+				errorMsg = fmt.Sprintf("The field '%s' must be a valid SSN (11 digits)", fieldName)
+			case "tax_id":
+				errorMsg = fmt.Sprintf("The field '%s' must be a valid tax ID (RFC format)", fieldName)
+			case "citizen_id":
+				errorMsg = fmt.Sprintf("The field '%s' must be a valid citizen ID (CURP format)", fieldName)
+			default:
+				errorMsg = fmt.Sprintf("The field '%s' failed validation for tag '%s'", fieldName, tag)
+			}
+
+			fieldErrors[fieldName] = errorMsg
+			details = append(details, errorMsg)
 		}
-		return errors.ValidationFailed(strings.Join(v, ","))
+
+		// Use structured field errors for better API responses
+		return apperr.ValidationFailedWithFields(fieldErrors)
 	}
 	return nil
 }

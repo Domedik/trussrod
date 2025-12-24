@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Domedik/trussrod/errors"
-	"github.com/Domedik/trussrod/logging"
-	"github.com/Domedik/trussrod/request"
-	"github.com/Domedik/trussrod/response"
+	"github.com/clineomx/trussrod/apperr"
+	"github.com/clineomx/trussrod/logging"
+	"github.com/clineomx/trussrod/request"
+	"github.com/clineomx/trussrod/response"
 )
 
 // Middleware type alias for http.Handler.
@@ -26,7 +26,7 @@ func HasApiKey(key string) Middleware {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			h, ok := request.GetHeader(r, request.ApiKeyHeader)
 			if !ok || h != key {
-				response.WithError(w, errors.Unauthorized())
+				response.WithError(w, r, apperr.Unauthorized())
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -77,7 +77,7 @@ func Recovery(logger *logging.Logger) Middleware {
 						0,
 						fields,
 					)
-					response.WithError(w, errors.Internal(nil))
+					response.WithError(w, r, apperr.Internal(nil))
 				}
 			}()
 
@@ -137,7 +137,7 @@ func Logging(logger *logging.Logger) Middleware {
 func SetTraceID() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			rid, ok := request.GetHeader(r, "X-Domedik-Trace-ID")
+			rid, ok := request.GetHeader(r, "X-Clineo-Trace-ID")
 			if !ok {
 				b := make([]byte, 16)
 				rand.Read(b)

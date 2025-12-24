@@ -65,7 +65,7 @@ type StorageConfig struct {
 	Bucket string
 }
 
-type DomedikConfig struct {
+type ClineoConfig struct {
 	Cache       *CacheConfig
 	Cloud       *CloudConfig
 	Crypto      *EncryptionConfig
@@ -80,22 +80,22 @@ type DomedikConfig struct {
 	LogLevel    string
 }
 
-func getFromProvider(deps []string) (*DomedikConfig, error) {
+func getFromProvider(deps []string) (*ClineoConfig, error) {
 	ctx := context.Background()
-	region := os.Getenv("DOMEDIK_REGION")
-	port := os.Getenv("DOMEDIK_PORT")
+	region := os.Getenv("CLINEO_REGION")
+	port := os.Getenv("CLINEO_PORT")
 	secretId := os.Getenv("SECRET_ID")
 
 	// Remove after correct deployment
 	apikey := os.Getenv("API_KEY")
 	var environment string
-	if value := os.Getenv("DOMEDIK_ENV"); value != "" {
+	if value := os.Getenv("CLINEO_ENV"); value != "" {
 		environment = strings.ToLower(value)
 	} else {
 		environment = "development"
 	}
 	var loglevel string
-	if value := os.Getenv("DOMEDIK_LOGLEVEL"); value != "" {
+	if value := os.Getenv("CLINEO_LOGLEVEL"); value != "" {
 		loglevel = strings.ToLower(value)
 	} else {
 		loglevel = "debug"
@@ -183,7 +183,7 @@ func getFromProvider(deps []string) (*DomedikConfig, error) {
 		}
 	}
 
-	return &DomedikConfig{
+	return &ClineoConfig{
 		BindPort:    port,
 		ApiKey:      apikey,
 		Environment: environment,
@@ -199,19 +199,19 @@ func getFromProvider(deps []string) (*DomedikConfig, error) {
 	}, nil
 }
 
-func getFromEnv(deps []string) *DomedikConfig {
-	port := os.Getenv("DOMEDIK_PORT")
-	region := os.Getenv("DOMEDIK_REGION")
+func getFromEnv(deps []string) *ClineoConfig {
+	port := os.Getenv("CLINEO_PORT")
+	region := os.Getenv("CLINEO_REGION")
 	// Remove after correct deployment
-	apikey := os.Getenv("DOMEDIK_API_KEY")
+	apikey := os.Getenv("CLINEO_API_KEY")
 	var environment string
-	if value := os.Getenv("DOMEDIK_ENV"); value != "" {
+	if value := os.Getenv("CLINEO_ENV"); value != "" {
 		environment = strings.ToLower(value)
 	} else {
 		environment = "development"
 	}
 	var loglevel string
-	if value := os.Getenv("DOMEDIK_LOGLEVEL"); value != "" {
+	if value := os.Getenv("CLINEO_LOGLEVEL"); value != "" {
 		loglevel = strings.ToLower(value)
 	} else {
 		loglevel = "debug"
@@ -275,7 +275,7 @@ func getFromEnv(deps []string) *DomedikConfig {
 		sconf.Bucket = os.Getenv("STORAGE_BUCKET")
 	}
 
-	return &DomedikConfig{
+	return &ClineoConfig{
 		ApiKey:      apikey,
 		BindPort:    port,
 		Environment: environment,
@@ -291,8 +291,8 @@ func getFromEnv(deps []string) *DomedikConfig {
 	}
 }
 
-func Resolve(deps []string) (*DomedikConfig, error) {
-	env := os.Getenv("DOMEDIK_ENV")
+func Resolve(deps []string) (*ClineoConfig, error) {
+	env := os.Getenv("CLINEO_ENV")
 	fmt.Print(env)
 	if env == "prod" {
 		return getFromProvider(deps)

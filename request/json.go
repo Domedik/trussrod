@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Domedik/trussrod/errors"
-	"github.com/Domedik/trussrod/validation"
+	"github.com/clineomx/trussrod/apperr"
+	"github.com/clineomx/trussrod/validation"
 )
 
 func JSON[T any](r *http.Request) (T, error) {
 	var zero T
 	if ct := r.Header.Get("Content-Type"); !strings.HasPrefix(ct, "application/json") {
-		return zero, errors.BadRequest("invalid Content-Type header")
+		return zero, apperr.BadRequest("invalid Content-Type header")
 	}
 	defer r.Body.Close()
 

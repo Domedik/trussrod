@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Domedik/trussrod/jwks"
-	"github.com/Domedik/trussrod/settings"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	provider "github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
+	"github.com/clineomx/trussrod/jwks"
+	"github.com/clineomx/trussrod/settings"
 )
 
 type Cognito struct {
@@ -85,7 +85,7 @@ func (c *Cognito) ConfirmUserSignup(ctx context.Context, email, code string) err
 	return err
 }
 
-func NewCognitoClient(c *settings.DomedikConfig) (*Cognito, error) {
+func NewCognitoClient(c *settings.ClineoConfig) (*Cognito, error) {
 	ctx := context.Background()
 	conf, err := config.LoadDefaultConfig(ctx, config.WithRegion(c.Cloud.Region))
 	if err != nil {

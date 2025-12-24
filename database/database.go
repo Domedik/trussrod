@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Domedik/trussrod/settings"
+	"github.com/clineomx/trussrod/settings"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

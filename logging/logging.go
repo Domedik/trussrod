@@ -294,7 +294,7 @@ func (rw *ResponseWriter) Write(b []byte) (int, error) {
 	return rw.ResponseWriter.Write(b)
 }
 
-const RequestLogger string = "DOMEDIK_REQUEST_LOGGER"
+const RequestLogger string = "CLINEO_REQUEST_LOGGER"
 
 func FromContext(ctx context.Context) *Logger {
 	log, ok := ctx.Value(RequestLogger).(*Logger)

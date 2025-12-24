@@ -7,9 +7,9 @@ import (
 type Header string
 
 const (
-	ApiKeyHeader   Header = "X-Domedik-Api-Key"
+	ApiKeyHeader   Header = "X-Clineo-Api-Key"
 	AuthHeader     Header = "Authorization"
-	IdentityHeader Header = "X-Domedik-Identity"
+	IdentityHeader Header = "X-Clineo-Identity"
 )
 
 func GetHeader(r *http.Request, h Header) (string, bool) {

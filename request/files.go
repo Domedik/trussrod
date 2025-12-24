@@ -9,8 +9,8 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/Domedik/trussrod/errors"
-	"github.com/Domedik/trussrod/storage"
+	"github.com/clineomx/trussrod/apperr"
+	"github.com/clineomx/trussrod/storage"
 	"github.com/google/uuid"
 )
 
@@ -68,7 +68,7 @@ func Files(r *http.Request) ([]*storage.File, error) {
 	}
 
 	if len(files) == 0 {
-		return files, errors.BadRequest("no files sent")
+		return files, apperr.BadRequest("no files sent")
 	}
 
 	return files, nil

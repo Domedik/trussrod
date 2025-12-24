@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Domedik/trussrod/settings"
+	"github.com/clineomx/trussrod/settings"
 	"github.com/redis/go-redis/v9"
 )
 

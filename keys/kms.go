@@ -7,11 +7,11 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	"github.com/Domedik/trussrod/utils/encryption"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
+	"github.com/clineomx/trussrod/utils/encryption"
 )
 
 type KMS struct {
