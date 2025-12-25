@@ -219,15 +219,15 @@ func ConflictWithDetails(resourceType, conflictingField string) *AppError {
 	}
 }
 
-func ConflictWithFields(fields any) *AppError {
-	var data []byte
-	if err := json.Unmarshal(data, &fields); err != nil {
+func ConflictWithFields(msg string, fields any) *AppError {
+	data, err := json.Marshal(fields)
+	if err != nil {
 		return Internal(err)
 	}
 
 	return &AppError{
 		Code:       "RESOURCE_CONFLICT",
-		Message:    fmt.Sprintf("The %s already exists with the provided %s", resourceType, conflictingField),
+		Message:    msg,
 		HTTPStatus: http.StatusConflict,
 		Data:       data,
 		Timestamp:  time.Now().UTC(),
