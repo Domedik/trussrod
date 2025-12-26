@@ -65,19 +65,26 @@ type StorageConfig struct {
 	Bucket string
 }
 
+type NotificationsConfig struct {
+	Account string `json:"NOTIFICATIONS_ACCOUNT"`
+	Token   string `json:"NOTIFICATIONS_TOKEN"`
+	From    string `json:"NOTIFICATIONS_FROM"`
+}
+
 type ClineoConfig struct {
-	Cache       *CacheConfig
-	Cloud       *CloudConfig
-	Crypto      *EncryptionConfig
-	DB          *DatabaseConfig
-	OAuth       *OAuthConfig
-	Events      *EventsConfig
-	Identity    *IdentityConfig
-	Storage     *StorageConfig
-	BindPort    string
-	ApiKey      string
-	Environment string
-	LogLevel    string
+	Cache         *CacheConfig
+	Cloud         *CloudConfig
+	Crypto        *EncryptionConfig
+	DB            *DatabaseConfig
+	OAuth         *OAuthConfig
+	Events        *EventsConfig
+	Identity      *IdentityConfig
+	Storage       *StorageConfig
+	BindPort      string
+	ApiKey        string
+	Environment   string
+	LogLevel      string
+	Notifications *NotificationsConfig
 }
 
 func getFromProvider(deps []string) (*ClineoConfig, error) {
@@ -183,19 +190,27 @@ func getFromProvider(deps []string) (*ClineoConfig, error) {
 		}
 	}
 
+	notificationsconf := NotificationsConfig{}
+	if slices.Contains(deps, "notifications") {
+		if err := json.Unmarshal([]byte(secret), &notificationsconf); err != nil {
+			return nil, errors.New("failed to unmarshal notifications config")
+		}
+	}
+
 	return &ClineoConfig{
-		BindPort:    port,
-		ApiKey:      apikey,
-		Environment: environment,
-		LogLevel:    loglevel,
-		Cloud:       &CloudConfig{Region: region},
-		DB:          &dbconf,
-		Cache:       &cacheconf,
-		OAuth:       &oauthconf,
-		Events:      &eventsconf,
-		Crypto:      &encconf,
-		Identity:    &idconf,
-		Storage:     &sconfig,
+		BindPort:      port,
+		ApiKey:        apikey,
+		Environment:   environment,
+		LogLevel:      loglevel,
+		Cloud:         &CloudConfig{Region: region},
+		DB:            &dbconf,
+		Cache:         &cacheconf,
+		OAuth:         &oauthconf,
+		Events:        &eventsconf,
+		Crypto:        &encconf,
+		Identity:      &idconf,
+		Storage:       &sconfig,
+		Notifications: &notificationsconf,
 	}, nil
 }
 
@@ -275,19 +290,27 @@ func getFromEnv(deps []string) *ClineoConfig {
 		sconf.Bucket = os.Getenv("STORAGE_BUCKET")
 	}
 
+	notificationsconf := NotificationsConfig{}
+	if slices.Contains(deps, "notifications") {
+		notificationsconf.Account = os.Getenv("NOTIFICATIONS_ACCOUNT")
+		notificationsconf.Token = os.Getenv("NOTIFICATIONS_TOKEN")
+		notificationsconf.From = os.Getenv("NOTIFICATIONS_FROM")
+	}
+
 	return &ClineoConfig{
-		ApiKey:      apikey,
-		BindPort:    port,
-		Environment: environment,
-		LogLevel:    loglevel,
-		DB:          dbconf,
-		Cache:       cacheconf,
-		OAuth:       oauthconf,
-		Crypto:      encconf,
-		Events:      eventsconf,
-		Identity:    &idconf,
-		Cloud:       &CloudConfig{Region: region},
-		Storage:     &sconf,
+		ApiKey:        apikey,
+		BindPort:      port,
+		Environment:   environment,
+		LogLevel:      loglevel,
+		DB:            dbconf,
+		Cache:         cacheconf,
+		OAuth:         oauthconf,
+		Crypto:        encconf,
+		Events:        eventsconf,
+		Identity:      &idconf,
+		Cloud:         &CloudConfig{Region: region},
+		Storage:       &sconf,
+		Notifications: &notificationsconf,
 	}
 }
 
