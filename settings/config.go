@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"slices"
 	"strconv"
@@ -71,6 +70,11 @@ type NotificationsConfig struct {
 	From    string `json:"NOTIFICATIONS_FROM"`
 }
 
+type AnonymizerConfig struct {
+	URL    string `json:"ANONYMIZER_URL"`
+	ApiKey string `json:"ANONYMIZER_APIKEY"`
+}
+
 type ClineoConfig struct {
 	Cache         *CacheConfig
 	Cloud         *CloudConfig
@@ -85,6 +89,7 @@ type ClineoConfig struct {
 	Environment   string
 	LogLevel      string
 	Notifications *NotificationsConfig
+	Anonymizer    *AnonymizerConfig
 }
 
 func getFromProvider(deps []string) (*ClineoConfig, error) {
@@ -197,6 +202,13 @@ func getFromProvider(deps []string) (*ClineoConfig, error) {
 		}
 	}
 
+	anonymizerconf := AnonymizerConfig{}
+	if slices.Contains(deps, "anonymizer") {
+		if err := json.Unmarshal([]byte(secret), &anonymizerconf); err != nil {
+			return nil, errors.New("failed to unmarshal anonymizer config")
+		}
+	}
+
 	return &ClineoConfig{
 		BindPort:      port,
 		ApiKey:        apikey,
@@ -211,6 +223,7 @@ func getFromProvider(deps []string) (*ClineoConfig, error) {
 		Identity:      &idconf,
 		Storage:       &sconfig,
 		Notifications: &notificationsconf,
+		Anonymizer:    &anonymizerconf,
 	}, nil
 }
 
@@ -297,6 +310,12 @@ func getFromEnv(deps []string) *ClineoConfig {
 		notificationsconf.From = os.Getenv("NOTIFICATIONS_FROM")
 	}
 
+	anonymizerconf := AnonymizerConfig{}
+	if slices.Contains(deps, "anonymizer") {
+		anonymizerconf.URL = os.Getenv("ANONYMIZER_URL")
+		anonymizerconf.ApiKey = os.Getenv("ANONYMIZER_APIKEY")
+	}
+
 	return &ClineoConfig{
 		ApiKey:        apikey,
 		BindPort:      port,
@@ -311,12 +330,12 @@ func getFromEnv(deps []string) *ClineoConfig {
 		Cloud:         &CloudConfig{Region: region},
 		Storage:       &sconf,
 		Notifications: &notificationsconf,
+		Anonymizer:    &anonymizerconf,
 	}
 }
 
 func Resolve(deps []string) (*ClineoConfig, error) {
 	env := os.Getenv("CLINEO_ENV")
-	fmt.Print(env)
 	if env == "prod" {
 		return getFromProvider(deps)
 	} else {
