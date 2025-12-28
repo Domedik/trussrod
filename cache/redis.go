@@ -3,9 +3,9 @@ package cache
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
-	"github.com/clineomx/trussrod/settings"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -13,13 +13,17 @@ type RedisClient struct {
 	conn *redis.Client
 }
 
-func NewRedisClient(c *settings.CacheConfig) (*RedisClient, error) {
-	uri := fmt.Sprintf("%s:%s", c.Host, c.Port)
+func NewRedisClient(host, port, password, db string) (*RedisClient, error) {
+	uri := fmt.Sprintf("%s:%s", host, port)
+	dbInt, err := strconv.Atoi(db)
+	if err != nil {
+		return nil, err
+	}
 	client := &RedisClient{
 		conn: redis.NewClient(&redis.Options{
 			Addr:     uri,
-			Password: c.Password,
-			DB:       0,
+			Password: password,
+			DB:       dbInt,
 		}),
 	}
 	if err := client.conn.Ping(context.Background()).Err(); err != nil {

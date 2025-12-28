@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"os"
 	"time"
 
-	"github.com/clineomx/trussrod/settings"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -41,51 +39,46 @@ func (w *pgxTxWrapper) Exec(ctx context.Context, sql string, args ...any) (Resul
 	return w.tx.Exec(ctx, sql, args...)
 }
 
-func getURL(c *settings.DatabaseConfig) string {
+func getURL(user, password, driver, host, port, name, sslmode, searchpath string) string {
 	var userInfo *url.Userinfo
-	if c.Password != "" {
-		userInfo = url.UserPassword(c.User, c.Password)
+	if password != "" {
+		userInfo = url.UserPassword(user, password)
 	} else {
-		userInfo = url.User(c.User)
+		userInfo = url.User(user)
 	}
-	var driver = "postgres"
-	if c.Driver != "" {
-		driver = c.Driver
+	if driver == "" {
+		driver = "postgres"
 	}
 
 	u := &url.URL{
 		Scheme: driver,
 		User:   userInfo,
-		Host:   fmt.Sprintf("%s:%s", c.Host, c.Port),
-		Path:   c.Name,
+		Host:   fmt.Sprintf("%s:%s", host, port),
+		Path:   name,
 	}
 
 	q := url.Values{}
-	q.Set("sslmode", c.SSLMode) // 'disable' is the default value
+	q.Set("sslmode", sslmode) // 'disable' is the default value
 
-	if c.SearchPath != "" {
-		q.Set("options", fmt.Sprintf("-c search_path=%s", c.SearchPath))
+	if searchpath != "" {
+		q.Set("options", fmt.Sprintf("-c search_path=%s", searchpath))
 	}
 
 	u.RawQuery = q.Encode()
 	return u.String()
 }
 
-func NewPostgres(c *settings.DatabaseConfig) (*Postgres, error) {
+func NewPostgres(user, password, driver, host, port, name, sslmode, searchpath string, maxConns int) (*Postgres, error) {
 	var err error
-	cfg, err := pgxpool.ParseConfig(getURL(c))
+	cfg, err := pgxpool.ParseConfig(getURL(user, password, driver, host, port, name, sslmode, searchpath))
 	if err != nil {
 		return nil, err
 	}
 	cfg.MinConns = 0
-	if c.MaxConns > 0 {
-		cfg.MaxConns = int32(c.MaxConns)
+	if maxConns > 0 {
+		cfg.MaxConns = int32(maxConns)
 	} else {
-		if os.Getenv("IS_ASYNC") != "" {
-			cfg.MaxConns = 2
-		} else {
-			cfg.MaxConns = 20
-		}
+		cfg.MaxConns = 20
 	}
 	cfg.MaxConnLifetime = 10 * time.Minute
 	cfg.MaxConnIdleTime = 20 * time.Minute
